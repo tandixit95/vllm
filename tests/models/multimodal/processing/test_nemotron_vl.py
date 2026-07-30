@@ -8,6 +8,7 @@ import pytest
 from PIL import Image
 from transformers import PretrainedConfig
 
+from vllm.model_executor.models.nemotron_vl import LlamaNemotronVLChatModel
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.multimodal.image import rescale_image_size
 from vllm.multimodal.processing import BaseMultiModalProcessor
@@ -81,6 +82,16 @@ def _run_check(
     print("Image token count:", img_tok_count, "Pixel shape:", pixel_shape)
     assert img_tok_count == 256 * total_expected_num_patches
     assert pixel_shape[0] == total_expected_num_patches
+
+
+def test_tower_connector_lora_token_counts():
+    model = object.__new__(LlamaNemotronVLChatModel)
+    object.__setattr__(model, "downsample_ratio", 0.5)
+
+    assert model.get_num_mm_encoder_tokens(256) == 1024
+    assert model.get_num_mm_encoder_tokens(512) == 2048
+    assert model.get_num_mm_connector_tokens(1024) == 256
+    assert model.get_num_mm_connector_tokens(2048) == 512
 
 
 @pytest.mark.parametrize("model_id", ["nvidia/Llama-3.1-Nemotron-Nano-VL-8B-V1"])

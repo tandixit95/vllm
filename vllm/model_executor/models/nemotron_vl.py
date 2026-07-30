@@ -393,6 +393,14 @@ class LlamaNemotronVLChatModel(nn.Module, SupportsMultiModal, SupportsPP, Suppor
             tower_model="vision_model",
         )
 
+    def get_num_mm_encoder_tokens(self, num_image_tokens: int) -> int:
+        scale_factor = int(1 / self.downsample_ratio)
+        return num_image_tokens * scale_factor**2
+
+    def get_num_mm_connector_tokens(self, num_vision_tokens: int) -> int:
+        scale_factor = int(1 / self.downsample_ratio)
+        return num_vision_tokens // scale_factor**2
+
 
 # --------------------------------------------------------
 # LlamaNemotronVL Embedding Model (nvidia/llama-nemotron-embed-vl-1b-v2)
